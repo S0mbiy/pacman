@@ -35,8 +35,7 @@ func main() {
     enemies[i] = 0
   }
   go print(update)
-  go pacman(update)
-  for n := 0; n < 5; n++ {
+  for n := 0; n < 15; n++ {
     fmt.Println("Running ghost ", n)
     go ghost(n, ch, update)
   }
@@ -125,66 +124,37 @@ func print(update chan int){
   }
 }
 
-func ghostUp(position int) (int) {
-  if position < 18 {
-    return ghostDown(position)
-  }
-  return position - 18
-}
-
-func ghostDown(position int) (int) {
-  if position >= 306 {
-    return ghostRight(position)
-  }
-  return position + 18
-}
-
-func ghostRight(position int) (int) {
-  if position%18 == 17 {
-    return ghostLeft(position)
-  }
-  return position + 1
-}
-
-func ghostLeft(position int) (int) {
-  if position%18 == 0 {
-    return ghostUp(position)
-  }
-  return position -1
-}
-
 func ghost(id int, cha chan string, update chan int) {
-  position := 15
+  position := 153
   lastPosition := position
-  // fmt.Println(position)
+	options := make([]int, 0, 4)
 
   // Change position random
   source := rand.NewSource(time.Now().UnixNano())
   generator := rand.New(source)
   for {
-    // fmt.Println("antes")
-    time.Sleep(time.Second/2)
-    changePosition := generator.Intn(4)
-    // fmt.Println(changePosition)
-    switch changePosition {
-    case 0:
-      position = ghostUp(position)
-    case 1:
-      position = ghostDown(position)
-    case 2:
-      position = ghostLeft(position)
-    case 3:
-      position = ghostRight(position)
-    }
-    if pacmap[position] == -1 {
-      position = lastPosition
-    } else {
-      enemies[lastPosition] = 0
-      lastPosition = position
-      enemies[position] = 2
-	  update <- 1
-      // fmt.Println("Actual position of ghost ", id, ": ", position)
-    }
+		time.Sleep(time.Second/2)
+		// check move options
+		if pacmap[position - 18] > 0 && (position - 18) != lastPosition {
+			options = append(options, position - 18)
+		}
+		if pacmap[position + 18] > 0 && (position + 18) != lastPosition{
+			options = append(options, position + 18)
+		}
+		if pacmap[position - 1] > 0 && (position -1) != lastPosition{
+			options = append(options, position - 1)
+		}
+		if pacmap[position + 1] > 0 && (position + 1) != lastPosition{
+			options = append(options, position + 1)
+		}
+
+    changePosition := generator.Intn(len(options))
+		position = options[changePosition]
+		enemies[lastPosition] = 0
+		lastPosition = position
+		enemies[position] = 2
+		options = options[:0]
+		update <- 1
   }
 
 }
