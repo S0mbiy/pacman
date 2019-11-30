@@ -28,40 +28,45 @@ var enemies [324]int
 
 func main() {
   ch := make(chan string)
-
-	for i := 0; i < len(enemies); i++ {
+  update := make(chan int)
+  for i := 0; i < len(enemies); i++ {
     enemies[i] = 0
   }
-	for n := 0; n < 5; n++ {
+  go print(update)
+  for n := 0; n < 5; n++ {
     fmt.Println("Running ghost ", n)
-    go ghost(n, ch)
+    go ghost(n, ch, update)
   }
   <-ch
 
 }
 
-func print(pacmap, enemies [324]int){
-  fmt.Print("\033[2J")
-	for i := 0; i < 324; i++ {
-		if(i%18==0){
-			fmt.Println()
-		}
-    if(enemies[i]== 2) {
-      fmt.Print("ᗕᗒ")
-    }else{
-      if(pacmap[i]==-1){
-  			fmt.Print("██")
-  		}else if(pacmap[i]==1){
-  			fmt.Print("░░")
-  		}else if(pacmap[i]==-2){
-  			fmt.Print("▄▄")
-  		}else if(pacmap[i]==-3){
-  			fmt.Print("▀▀")
-  		}
-    }
-	}
-	fmt.Println()
-
+func print(update chan int){
+  for {
+	  select {
+	    case <-update:
+		  fmt.Print("\033[2J")
+		  for i := 0; i < 324; i++ {
+			if(i%18==0){
+			  fmt.Println()
+			}
+		    if(enemies[i]== 2) {
+		      fmt.Print("ᗕᗒ")
+		    }else{
+		      if(pacmap[i]==-1){
+		  		  fmt.Print("██")
+		  		}else if(pacmap[i]==1){
+		  		  fmt.Print("░░")
+		  		}else if(pacmap[i]==-2){
+		  		  fmt.Print("▄▄")
+		  		}else if(pacmap[i]==-3){
+		  		  fmt.Print("▀▀")
+		  		}
+		    }
+		  }
+		  fmt.Println()
+	  }
+  }
 }
 
 func ghostUp(position int) (int) {
@@ -92,7 +97,7 @@ func ghostLeft(position int) (int) {
   return position -1
 }
 
-func ghost(id int, cha chan string) {
+func ghost(id int, cha chan string, update chan int) {
   position := 15
   lastPosition := position
   // fmt.Println(position)
@@ -121,7 +126,7 @@ func ghost(id int, cha chan string) {
       enemies[lastPosition] = 0
       lastPosition = position
       enemies[position] = 2
-      print(pacmap, enemies)
+	  update <- 1
       // fmt.Println("Actual position of ghost ", id, ": ", position)
     }
   }
