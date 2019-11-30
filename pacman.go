@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"math/rand"
   "time"
+  "log"
+  term "github.com/nsf/termbox-go"
 )
 
 var pacmap = [324]int{-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
@@ -33,12 +35,64 @@ func main() {
     enemies[i] = 0
   }
   go print(update)
+  go pacman(update)
   for n := 0; n < 5; n++ {
     fmt.Println("Running ghost ", n)
     go ghost(n, ch, update)
   }
   <-ch
 
+}
+
+func reset() {
+    term.Sync() // cosmestic purpose
+}
+
+func pacman(update chan int){
+	curPos := 225
+	enemies[curPos] = 1
+	update <- 1
+	err := term.Init()
+    if err != nil {
+		log.Panicln("Couldn't init keyboard listener")
+		return
+    }
+	defer term.Close()
+	for {
+		switch ev := term.PollEvent(); ev.Type {
+        case term.EventKey:
+            switch ev.Key {
+			case term.KeyArrowUp:
+				if pacmap[curPos-18] > -1{
+					enemies[curPos] = 0
+					curPos = curPos-18
+					enemies[curPos] = 1
+					update <- 1
+				}
+			case term.KeyArrowDown:
+				if pacmap[curPos+18] > -1{
+					enemies[curPos] = 0
+					curPos = curPos+18
+					enemies[curPos] = 1
+					update <- 1
+				}
+			case term.KeyArrowLeft:
+				if pacmap[curPos-1] > -1{
+					enemies[curPos] = 0
+					curPos = curPos-1
+					enemies[curPos] = 1
+					update <- 1
+				}
+			case term.KeyArrowRight:
+				if pacmap[curPos+1] > -1{
+					enemies[curPos] = 0
+					curPos = curPos+1
+					enemies[curPos] = 1
+					update <- 1
+				}
+			}
+		}
+	}
 }
 
 func print(update chan int){
@@ -52,6 +106,8 @@ func print(update chan int){
 			}
 		    if(enemies[i]== 2) {
 		      fmt.Print("ᗕᗒ")
+		    }else if(enemies[i]== 1) {
+		      fmt.Print("◖◗")
 		    }else{
 		      if(pacmap[i]==-1){
 		  		  fmt.Print("██")
