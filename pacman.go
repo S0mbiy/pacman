@@ -35,8 +35,9 @@ func main() {
     enemies[i] = 0
   }
   go print(update)
-  for n := 0; n < 15; n++ {
-    fmt.Println("Running ghost ", n)
+	go pacman(update)
+  for n := 0; n < 5; n++ {
+    // fmt.Println("Running ghost ", n)
     go ghost(n, ch, update)
   }
   <-ch
