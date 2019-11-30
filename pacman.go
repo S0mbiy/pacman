@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"math/rand"
   "time"
+  "os"
+  "strconv"
   "log"
   term "github.com/nsf/termbox-go"
 )
@@ -31,7 +33,12 @@ var enemies [324]int
 var points int
 
 func main() {
-	points = 0
+  ghosts, err:=strconv.Atoi(os.Args[1])
+  if err!=nil{
+	  log.Fatalln("Usage: ./pacman.go <num_ghost>")
+	  return
+  }
+  points = 0
   ch := make(chan string)
   update := make(chan int)
   for i := 0; i < len(enemies); i++ {
@@ -39,12 +46,17 @@ func main() {
   }
   go print(update)
 	go pacman(ch, update)
-  for n := 0; n < 5; n++ {
+  for n := 0; n < ghosts; n++ {
     // fmt.Println("Running ghost ", n)
     go ghost(n, ch, update)
   }
-  <-ch
-
+  end:=<-ch
+  if end=="hit"{
+	  fmt.Println("\033[2J")
+	  fmt.Println("############################")
+	  fmt.Println("#######  GAME OVER  ########")
+	  fmt.Println("############################")
+  }
 }
 
 func reset() {
@@ -70,6 +82,9 @@ func pacman(cha chan string, update chan int){
 				break keyPressListenerLoop
 			case term.KeyArrowUp:
 				if pacmap[curPos-18] > -1{
+					if enemies[curPos]==2{
+						cha <- "hit"
+					}
 					enemies[curPos] = 0
 					if pacmap[curPos] == 1 {
 						points ++
@@ -81,6 +96,9 @@ func pacman(cha chan string, update chan int){
 				}
 			case term.KeyArrowDown:
 				if pacmap[curPos+18] > -1{
+					if enemies[curPos]==2{
+						cha <- "hit"
+					}
 					enemies[curPos] = 0
 					if pacmap[curPos] == 1 {
 						points ++
@@ -92,6 +110,9 @@ func pacman(cha chan string, update chan int){
 				}
 			case term.KeyArrowLeft:
 				if pacmap[curPos-1] > -1{
+					if enemies[curPos]==2{
+						cha <- "hit"
+					}
 					enemies[curPos] = 0
 					if pacmap[curPos] == 1 {
 						points ++
@@ -103,6 +124,9 @@ func pacman(cha chan string, update chan int){
 				}
 			case term.KeyArrowRight:
 				if pacmap[curPos+1] > -1{
+					if enemies[curPos]==2{
+						cha <- "hit"
+					}
 					enemies[curPos] = 0
 					if pacmap[curPos] == 1 {
 						points ++
@@ -177,8 +201,11 @@ func ghost(id int, cha chan string, update chan int) {
 			options = append(options, position + 1)
 		}
 
-    changePosition := generator.Intn(len(options))
+    	changePosition := generator.Intn(len(options))
 		position = options[changePosition]
+		if enemies[position]==1{
+			cha <- "hit"
+		}
 		enemies[lastPosition] = 0
 		lastPosition = position
 		enemies[position] = 2
