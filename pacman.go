@@ -28,14 +28,17 @@ var pacmap = [324]int{-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
 -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1}
 var enemies [324]int
 
+var points int
+
 func main() {
+	points = 0
   ch := make(chan string)
   update := make(chan int)
   for i := 0; i < len(enemies); i++ {
     enemies[i] = 0
   }
   go print(update)
-	go pacman(update)
+	go pacman(ch, update)
   for n := 0; n < 5; n++ {
     // fmt.Println("Running ghost ", n)
     go ghost(n, ch, update)
@@ -48,7 +51,7 @@ func reset() {
     term.Sync() // cosmestic purpose
 }
 
-func pacman(update chan int){
+func pacman(cha chan string, update chan int){
 	curPos := 225
 	enemies[curPos] = 1
 	update <- 1
@@ -68,6 +71,10 @@ func pacman(update chan int){
 			case term.KeyArrowUp:
 				if pacmap[curPos-18] > -1{
 					enemies[curPos] = 0
+					if pacmap[curPos] == 1 {
+						points ++
+						pacmap[curPos] = 0
+					}
 					curPos = curPos-18
 					enemies[curPos] = 1
 					update <- 1
@@ -75,6 +82,10 @@ func pacman(update chan int){
 			case term.KeyArrowDown:
 				if pacmap[curPos+18] > -1{
 					enemies[curPos] = 0
+					if pacmap[curPos] == 1 {
+						points ++
+						pacmap[curPos] = 0
+					}
 					curPos = curPos+18
 					enemies[curPos] = 1
 					update <- 1
@@ -82,6 +93,10 @@ func pacman(update chan int){
 			case term.KeyArrowLeft:
 				if pacmap[curPos-1] > -1{
 					enemies[curPos] = 0
+					if pacmap[curPos] == 1 {
+						points ++
+						pacmap[curPos] = 0
+					}
 					curPos = curPos-1
 					enemies[curPos] = 1
 					update <- 1
@@ -89,11 +104,18 @@ func pacman(update chan int){
 			case term.KeyArrowRight:
 				if pacmap[curPos+1] > -1{
 					enemies[curPos] = 0
+					if pacmap[curPos] == 1 {
+						points ++
+						pacmap[curPos] = 0
+					}
 					curPos = curPos+1
 					enemies[curPos] = 1
 					update <- 1
 				}
 			}
+		}
+		if points == 146 {
+			cha <- "won"
 		}
 	}
 }
@@ -103,6 +125,7 @@ func print(update chan int){
 	  select {
 	    case <-update:
 		  fmt.Print("\033[2J")
+			fmt.Println("Points: ", points)
 		  for i := 0; i < 324; i++ {
 			if(i%18==0){
 			  fmt.Println()
@@ -141,16 +164,16 @@ func ghost(id int, cha chan string, update chan int) {
   for {
 		time.Sleep(time.Second/2)
 		// check move options
-		if pacmap[position - 18] > 0 && (position - 18) != lastPosition {
+		if pacmap[position - 18] > -1 && (position - 18) != lastPosition {
 			options = append(options, position - 18)
 		}
-		if pacmap[position + 18] > 0 && (position + 18) != lastPosition{
+		if pacmap[position + 18] > -1 && (position + 18) != lastPosition{
 			options = append(options, position + 18)
 		}
-		if pacmap[position - 1] > 0 && (position -1) != lastPosition{
+		if pacmap[position - 1] > -1 && (position -1) != lastPosition{
 			options = append(options, position - 1)
 		}
-		if pacmap[position + 1] > 0 && (position + 1) != lastPosition{
+		if pacmap[position + 1] > -1 && (position + 1) != lastPosition{
 			options = append(options, position + 1)
 		}
 
