@@ -58,10 +58,13 @@ func pacman(update chan int){
 		return
     }
 	defer term.Close()
+	keyPressListenerLoop:
 	for {
 		switch ev := term.PollEvent(); ev.Type {
         case term.EventKey:
             switch ev.Key {
+			case term.KeyEsc:
+				break keyPressListenerLoop
 			case term.KeyArrowUp:
 				if pacmap[curPos-18] > -1{
 					enemies[curPos] = 0
@@ -105,18 +108,20 @@ func print(update chan int){
 			  fmt.Println()
 			}
 		    if(enemies[i]== 2) {
-		      fmt.Print("ᗕᗒ")
+		      fmt.Print("👻")
 		    }else if(enemies[i]== 1) {
-		      fmt.Print("◖◗")
+		      fmt.Print("😶")
 		    }else{
 		      if(pacmap[i]==-1){
-		  		  fmt.Print("██")
+		  		  fmt.Print("⬛")
+		  		}else if(pacmap[i]==0){
+		  		  fmt.Print("⬜")
 		  		}else if(pacmap[i]==1){
-		  		  fmt.Print("░░")
+		  		  fmt.Print("💎")
 		  		}else if(pacmap[i]==-2){
-		  		  fmt.Print("▄▄")
+		  		  fmt.Print("➖")
 		  		}else if(pacmap[i]==-3){
-		  		  fmt.Print("▀▀")
+		  		  fmt.Print("➖")
 		  		}
 		    }
 		  }
