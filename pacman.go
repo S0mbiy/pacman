@@ -6,6 +6,7 @@ import (
   "time"
   "os"
   "strconv"
+  "sync"
   "log"
   term "github.com/nsf/termbox-go"
 )
@@ -29,7 +30,7 @@ var pacmap = [324]int{-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
 -1,1,1,1,1,1,1,1,-1,-1,1,1,1,1,1,1,1,-1,
 -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1}
 var enemies [324]int
-
+var mutex = &sync.Mutex{}
 var points int
 
 func main() {
@@ -41,6 +42,7 @@ func main() {
   points = 0
   ch := make(chan string)
   update := make(chan int)
+
   for i := 0; i < len(enemies); i++ {
     enemies[i] = 0
   }
@@ -54,18 +56,22 @@ func main() {
   if end=="hit"{
 	  fmt.Println("\033[2J")
 	  fmt.Println("################################")
+	  fmt.Println("################################")
 	  fmt.Println("#######                 ########")
 	  fmt.Println("#######    GAME OVER    ########")
 	  fmt.Println("#######                 ########")
 	  fmt.Println("################################")
+	  fmt.Println("################################")
   }
 	if end == "won" {
-		fmt.Println("\033[2J")
+	  fmt.Println("\033[2J")
 	  fmt.Println("################################")
-		fmt.Println("#######                 ########")
+	  fmt.Println("################################")
+	  fmt.Println("#######                 ########")
 	  fmt.Println("#######     YOU WON!    ########")
-		fmt.Println("#######                 ########")
-		fmt.Println("################################")
+	  fmt.Println("#######                 ########")
+	  fmt.Println("################################")
+	  fmt.Println("################################")
 	}
 }
 
@@ -92,58 +98,66 @@ func pacman(cha chan string, update chan int){
 				break keyPressListenerLoop
 			case term.KeyArrowUp:
 				if pacmap[curPos-18] > -1{
-					if enemies[curPos]==2{
+					mutex.Lock()
+					if enemies[curPos-18]==2{
 						cha <- "hit"
 					}
 					enemies[curPos] = 0
+					curPos = curPos-18
+					enemies[curPos] = 1
+					mutex.Unlock()
 					if pacmap[curPos] == 1 {
 						points ++
 						pacmap[curPos] = 0
 					}
-					curPos = curPos-18
-					enemies[curPos] = 1
 					update <- 1
 				}
 			case term.KeyArrowDown:
 				if pacmap[curPos+18] > -1{
-					if enemies[curPos]==2{
+					mutex.Lock()
+					if enemies[curPos+18]==2{
 						cha <- "hit"
 					}
 					enemies[curPos] = 0
+					curPos = curPos+18
+					enemies[curPos] = 1
+					mutex.Unlock()
 					if pacmap[curPos] == 1 {
 						points ++
 						pacmap[curPos] = 0
 					}
-					curPos = curPos+18
-					enemies[curPos] = 1
 					update <- 1
 				}
 			case term.KeyArrowLeft:
 				if pacmap[curPos-1] > -1{
-					if enemies[curPos]==2{
+					mutex.Lock()
+					if enemies[curPos-1]==2{
 						cha <- "hit"
 					}
 					enemies[curPos] = 0
+					curPos = curPos-1
+					enemies[curPos] = 1
+					mutex.Unlock()
 					if pacmap[curPos] == 1 {
 						points ++
 						pacmap[curPos] = 0
 					}
-					curPos = curPos-1
-					enemies[curPos] = 1
 					update <- 1
 				}
 			case term.KeyArrowRight:
 				if pacmap[curPos+1] > -1{
-					if enemies[curPos]==2{
+					mutex.Lock()
+					if enemies[curPos+1]==2{
 						cha <- "hit"
 					}
 					enemies[curPos] = 0
+					curPos = curPos+1
+					enemies[curPos] = 1
+					mutex.Unlock()
 					if pacmap[curPos] == 1 {
 						points ++
 						pacmap[curPos] = 0
 					}
-					curPos = curPos+1
-					enemies[curPos] = 1
 					update <- 1
 				}
 			}
@@ -189,7 +203,7 @@ func print(update chan int){
 
 func ghost(id int, cha chan string, update chan int) {
   position := 153
-  lastPosition := position
+  lastPosition := 153
 	options := make([]int, 0, 4)
 
   // Change position random
@@ -211,14 +225,16 @@ func ghost(id int, cha chan string, update chan int) {
 			options = append(options, position + 1)
 		}
 
-    	changePosition := generator.Intn(len(options))
-		position = options[changePosition]
+    	random := generator.Intn(len(options))
+		lastPosition = position
+		position = options[random]
+		mutex.Lock()
 		if enemies[position]==1{
 			cha <- "hit"
 		}
 		enemies[lastPosition] = 0
-		lastPosition = position
 		enemies[position] = 2
+		mutex.Unlock()
 		options = options[:0]
 		update <- 1
   }
