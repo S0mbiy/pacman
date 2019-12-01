@@ -53,10 +53,20 @@ func main() {
   end:=<-ch
   if end=="hit"{
 	  fmt.Println("\033[2J")
-	  fmt.Println("############################")
-	  fmt.Println("#######  GAME OVER  ########")
-	  fmt.Println("############################")
+	  fmt.Println("################################")
+	  fmt.Println("#######                 ########")
+	  fmt.Println("#######    GAME OVER    ########")
+	  fmt.Println("#######                 ########")
+	  fmt.Println("################################")
   }
+	if end == "won" {
+		fmt.Println("\033[2J")
+	  fmt.Println("################################")
+		fmt.Println("#######                 ########")
+	  fmt.Println("#######     YOU WON!    ########")
+		fmt.Println("#######                 ########")
+		fmt.Println("################################")
+	}
 }
 
 func reset() {
