@@ -2,18 +2,18 @@
 
 ## Aproach
 The approach for this implementation of the game pacman is to divide the game in the following parts:
-#### - Characters:
-  - Pacman:
-    - Inside the Pacman character is the code to take the arrow keys to move the character, also within it is checked if Pacman collides with a coin to get the point and delete the coin from the place. After each movement the points are checked to know if the goal is achived.
-  - Ghosts:
-    - For the ghosts with just one is enough because each one moves randomly, the position of the ghosts is saved inside another array and checked to show the game, the movements of the ghosts are randomly generated but always checked with the objects map to avoid that a ghost can go through the walls.
-
 #### - Map
-  - The map is made with an array, each array element represents a space of the map, with this array we can signilize the elements of the map with the following numbers:
-    - Wall: -1
-    - Empty space: 0
-    - Coin: 1
-    - Ghost wall: -2 and -3
-  - Also there is a second map to signilize the position of the ghosts and Pacman, making possible to check the position of this characters and if they collide with each other to know if the player has lost when it collides with a ghost.
+- The map is made with an array, each array element represents a space of the map and each 18 spaces represent a row, each space in this array can hold one of the following numbers to signalize the elements of the map:
+- Wall: -1
+- Empty space: 0
+- Coin: 1
+- Ghost Spawn: -2 and -3
+#### - Characters
+For the characters there is a second array of the same length as the map to signalize the position of the ghosts and Pacman as 2 and 1 respectively, making possible to check the position of this characters and send a signal when they collide, in order to declare GAME OVER.
+  - Pacman:
+    - In the pacman character there is the code to listen for user input through the arrow keys to move the character, also this replace the coins with empty spaces and increase the score and check if the player won, if he collect all coins the game declare he WON.
+  - Ghosts:
+    - For the ghosts a single function is enough because each one moves randomly, the movements of the ghosts is random but always moving forward and checking with the map array to avoid that a ghost go through walls, also it checks for collision with the player, if they collide the game declare GAME OVER.
 
-With this approach the game can be checked each time the user inputs a key to move Pacman or when a ghost moves to update the visual part of the game, even when it is all in console, making a notifier approach, meaning that when a change is made the printer is notified by a message sent through a special channel. In the win or lose part is made with channels to notify that the game has finished.
+## - Updater
+With this approach the board can be called to be print every update to the character array, meaning that when a character does a change, the character responsible for the change notify the updater by a message through a special channel.
